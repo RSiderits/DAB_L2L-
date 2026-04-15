@@ -1,0 +1,39 @@
+DAB COMPARATOR HELP
+===================
+
+Purpose
+-------
+This browser tool compares two brightfield H-DAB images and reports the relative difference in average DAB staining intensity. It is intended for practical research comparison, not for validated clinical diagnosis.
+
+Main Features
+-------------
+1. Drag-and-drop or Browse loading for two images.
+2. Image previews for both loaded files.
+3. Tissue masking based on brightness and saturation.
+4. DAB estimation using H-DAB color deconvolution.
+5. Bounded percent difference result from 0% to 100%.
+6. Directional interpretation reported separately as darker/stronger or lighter/weaker.
+7. QC overlays for tissue mask and DAB distribution.
+8. Report export and clipboard copy functions.
+
+How To Use
+----------
+1. Load Image 1 as the reference image.
+2. Load Image 2 as the comparison image.
+3. Click Compare Images.
+4. Review the report in the Results panel.
+5. Review the QC overlay panels before accepting the numeric result.
+6. Use Export Report to save a text file, or Copy Report to place the report on the clipboard.
+7. Use Clear All to reset the session.
+8. Use the Help button to open this help file in a separate window.
+
+Result Meaning
+--------------
+- Percent difference in average DAB staining is shown on a 0% to 100% scale.
+- Direction is shown separately relative to Image 1.
+- Darker/stronger means Image 2 has greater average DAB optical density than Image 1.
+- Lighter/weaker means Image 2 has lower average DAB optical density than Image 1.
+
+Important Caution
+-----------------
+This is a browser-based comparison utility. It supports visual and relative analytical review, but it is not a validated clinical pathology platform. Always review the QC overlays and use professional judgment.
