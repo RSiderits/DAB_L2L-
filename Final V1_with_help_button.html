@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DAB Comparator</title>
+  <style>
+    :root {
+      --bg: #b7e3ff;
+      --panel: #dff3ff;
+      --panel-2: #eef9ff;
+      --accent: #3399ff;
+      --accent-dark: #0b5fa5;
+      --text: #0a2a43;
+      --border: #7fc2ee;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(180deg, #77c5ff, #5fb8ff);
+      color: #06243a;
+      padding: 16px 20px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .container {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: var(--accent-dark);
+    }
+
+    .dropzone {
+      border: 2px dashed var(--accent);
+      border-radius: 12px;
+      background: var(--panel-2);
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      transition: 0.15s ease;
+      font-weight: bold;
+    }
+
+    .dropzone.dragover {
+      background: #d2f1ff;
+      border-color: var(--accent-dark);
+      transform: scale(1.01);
+    }
+
+    .file-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    button, .button-label {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    button:hover, .button-label:hover { filter: brightness(1.05); }
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    input[type="file"] { display: none; }
+
+    .path {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      min-height: 38px;
+      word-break: break-all;
+    }
+
+    .preview {
+      margin-top: 10px;
+      width: 100%;
+      height: 260px;
+      background: white;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .preview img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: none;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .control-note {
+      color: var(--accent-dark);
+      font-size: 13px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 560px;
+      resize: vertical;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      color: #08253c;
+    }
+
+    .qc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .qc-card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .qc-card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--accent-dark);
+    }
+
+    .qc-stage {
+      width: 100%;
+      height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .qc-card canvas {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+      background: white;
+    }
+
+    .status {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #e9f7ff;
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .footer-note {
+      font-size: 13px;
+      color: #0d476f;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 1100px) {
+      .top-grid, .results-grid, .qc-grid {
+        grid-template-columns: 1fr;
+      }
+      textarea { min-height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DAB Comparator</h1>
+    <p>Single-file browser tool for relative comparison of DAB intensity between two brightfield H-DAB images. Suitable for GitHub Pages. The main output is a bounded percent difference score for average DAB staining between the two images, reported on a 0% to 100% scale with direction shown separately.</p>
+  </header>
+
+  <div class="container">
+    <div class="status" id="status">Load two images by drag-and-drop or Browse. Then click Compare Images.</div>
+
+    <div class="top-grid">
+      <section class="panel">
+        <h2>Image 1 (Reference)</h2>
+        <div id="drop1" class="dropzone">Drag and drop image 1 here<br>or click to browse</div>
+        <div class="file-row">
+          <label class="button-label" for="file1">Browse</label>
+          <button id="clear1" type="button">Clear</button>
+          <input id="file1" type="file" accept="image/*,.tif,.tiff,.png,.jpg,.jpeg,.bmp,.webp" />
+        </div>
+        <div class="path" id="path1">No image loaded</div>
+        <div class="preview"><img id="preview1" alt="Image 1 preview"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Image 2 (Comparison)</h2>
+        <div id="drop2" class="dropzone">Drag and drop image 2 here<br>or click to browse</div>
+        <div class="file-row">
+          <label class="button-label" for="file2">Browse</label>
+          <button id="clear2" type="button">Clear</button>
+          <input id="file2" type="file" accept="image/*,.tif,.tiff,.png,.jpg,.jpeg,.bmp,.webp" />
+        </div>
+        <div class="path" id="path2">No image loaded</div>
+        <div class="preview"><img id="preview2" alt="Image 2 preview"></div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="controls">
+        <button id="compareBtn" type="button">Compare Images</button>
+        <button id="exportBtn" type="button">Export Report</button>
+        <button id="copyBtn" type="button">Copy Report</button>
+        <button id="clearAllBtn" type="button">Clear All</button>
+        <button id="helpBtn" type="button">Help</button>
+        <span class="control-note">Runs fully in the browser. No server required. Drag-and-drop and Browse are both supported.</span>
+      </div>
+    </section>
+
+    <div class="results-grid">
+      <section class="panel">
+        <h2>Results</h2>
+        <textarea id="report" spellcheck="false" readonly></textarea>
+      </section>
+
+      <section class="panel">
+        <h2>QC Preview</h2>
+        <div class="qc-grid">
+          <div class="qc-card">
+            <h3>Image 1 Tissue Mask</h3>
+            <div class="qc-stage"><canvas id="qc1t"></canvas></div>
+          </div>
+          <div class="qc-card">
+            <h3>Image 1 DAB Overlay</h3>
+            <div class="qc-stage"><canvas id="qc1p"></canvas></div>
+          </div>
+          <div class="qc-card">
+            <h3>Image 2 Tissue Mask</h3>
+            <div class="qc-stage"><canvas id="qc2t"></canvas></div>
+          </div>
+          <div class="qc-card">
+            <h3>Image 2 DAB Overlay</h3>
+            <div class="qc-stage"><canvas id="qc2p"></canvas></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel footer-note">
+      <strong>Method note:</strong> this browser version follows the same core logic as the Python script: tissue masking from brightness and saturation, H-DAB color deconvolution, and percent difference in average DAB staining. The main reported result is a DAB-only bounded percent difference score from 0% to 100%, with direction shown separately. It is still a relative comparison tool, not a validated clinical analysis platform.
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      img1: null,
+      img2: null,
+      fileName1: null,
+      fileName2: null,
+      previewUrl1: null,
+      previewUrl2: null,
+      report: ''
+    };
+
+    const statusEl = document.getElementById('status');
+    const reportEl = document.getElementById('report');
+
+    function setStatus(msg) {
+      statusEl.textContent = msg;
+    }
+
+    function clamp(v, lo, hi) {
+      return Math.max(lo, Math.min(hi, v));
+    }
+
+    function mean(arr) {
+      if (!arr.length) return 0;
+      let s = 0;
+      for (let i = 0; i < arr.length; i++) s += arr[i];
+      return s / arr.length;
+    }
+
+    function median(arr) {
+      if (!arr.length) return 0;
+      const copy = Array.from(arr).sort((a, b) => a - b);
+      const m = Math.floor(copy.length / 2);
+      return copy.length % 2 ? copy[m] : (copy[m - 1] + copy[m]) / 2;
+    }
+
+    function std(arr, mu = null) {
+      if (!arr.length) return 0;
+      const m = mu === null ? mean(arr) : mu;
+      let s = 0;
+      for (let i = 0; i < arr.length; i++) {
+        const d = arr[i] - m;
+        s += d * d;
+      }
+      return Math.sqrt(s / arr.length);
+    }
+
+    function percentile(arr, p) {
+      if (!arr.length) return 0;
+      const copy = Array.from(arr).sort((a, b) => a - b);
+      const idx = (copy.length - 1) * p;
+      const lo = Math.floor(idx);
+      const hi = Math.ceil(idx);
+      if (lo === hi) return copy[lo];
+      const frac = idx - lo;
+      return copy[lo] * (1 - frac) + copy[hi] * frac;
+    }
+
+    function mappedDabDifference(ref, cmp) {
+      if (ref === null || cmp === null) return null;
+      const refMag = Math.abs(ref);
+      const cmpMag = Math.abs(cmp);
+      const denom = Math.max(refMag, cmpMag, 1e-12);
+      return Math.abs(cmpMag - refMag) / denom;
+    }
+
+    function compareDirection(ref, cmp) {
+      if (ref === null || cmp === null) return null;
+      const refMag = Math.abs(ref);
+      const cmpMag = Math.abs(cmp);
+      if (Math.abs(cmpMag - refMag) < 1e-12) return 'No difference';
+      return cmpMag > refMag ? 'Image 2 darker / stronger' : 'Image 2 lighter / weaker';
+    }
+
+    function formatPct(x) {
+      return `${(x * 100).toFixed(2)}%`;
+    }
+
+    function rgbToHsv(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const d = max - min;
+      let h = 0;
+      const s = max === 0 ? 0 : d / max;
+      const v = max;
+
+      if (d !== 0) {
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)); break;
+          case g: h = ((b - r) / d + 2); break;
+          case b: h = ((r - g) / d + 4); break;
+        }
+        h /= 6;
+      }
+      return [h * 360, s, v];
+    }
+
+    function invert3x3(m) {
+      const [a,b,c,d,e,f,g,h,i] = m;
+      const A = e*i - f*h;
+      const B = -(d*i - f*g);
+      const C = d*h - e*g;
+      const D = -(b*i - c*h);
+      const E = a*i - c*g;
+      const F = -(a*h - b*g);
+      const G = b*f - c*e;
+      const H = -(a*f - c*d);
+      const I = a*e - b*d;
+      const det = a*A + b*B + c*C;
+      if (Math.abs(det) < 1e-12) throw new Error('Could not invert stain matrix.');
+      return [A/det, D/det, G/det, B/det, E/det, H/det, C/det, F/det, I/det];
+    }
+
+    const RGB_FROM_HED = [
+      0.65, 0.70, 0.29,
+      0.07, 0.99, 0.11,
+      0.27, 0.57, 0.78
+    ];
+    const HED_FROM_RGB = invert3x3(RGB_FROM_HED);
+
+    function getDabChannel(r, g, b) {
+      const rf = Math.max(r / 255, 1e-6);
+      const gf = Math.max(g / 255, 1e-6);
+      const bf = Math.max(b / 255, 1e-6);
+      const odR = -Math.log(rf);
+      const odG = -Math.log(gf);
+      const odB = -Math.log(bf);
+
+      return (
+        HED_FROM_RGB[6] * odR +
+        HED_FROM_RGB[7] * odG +
+        HED_FROM_RGB[8] * odB
+      );
+    }
+
+    function otsuThreshold(values, bins = 256) {
+      if (!values.length) return 0;
+      let min = Infinity;
+      let max = -Infinity;
+      for (let i = 0; i < values.length; i++) {
+        const v = values[i];
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      if (max <= min) return min;
+
+      const hist = new Array(bins).fill(0);
+      const scale = (bins - 1) / (max - min);
+      for (let i = 0; i < values.length; i++) {
+        const idx = clamp(Math.floor((values[i] - min) * scale), 0, bins - 1);
+        hist[idx]++;
+      }
+
+      let total = values.length;
+      let sum = 0;
+      for (let i = 0; i < bins; i++) sum += i * hist[i];
+
+      let sumB = 0;
+      let wB = 0;
+      let maxVar = -1;
+      let threshold = 0;
+
+      for (let i = 0; i < bins; i++) {
+        wB += hist[i];
+        if (wB === 0) continue;
+        const wF = total - wB;
+        if (wF === 0) break;
+        sumB += i * hist[i];
+        const mB = sumB / wB;
+        const mF = (sum - sumB) / wF;
+        const between = wB * wF * (mB - mF) * (mB - mF);
+        if (between > maxVar) {
+          maxVar = between;
+          threshold = i;
+        }
+      }
+
+      return min + (threshold / (bins - 1)) * (max - min);
+    }
+
+    function createImageFromUrl(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Could not load image preview.'));
+        img.src = url;
+      });
+    }
+
+    async function assignFile(which, file) {
+      try {
+        const url = URL.createObjectURL(file);
+        const img = await createImageFromUrl(url);
+
+        if (which === 1) {
+          if (state.previewUrl1) URL.revokeObjectURL(state.previewUrl1);
+          state.img1 = img;
+          state.fileName1 = file.name;
+          state.previewUrl1 = url;
+          document.getElementById('path1').textContent = file.name;
+          const preview = document.getElementById('preview1');
+          preview.src = url;
+          preview.style.display = 'block';
+        } else {
+          if (state.previewUrl2) URL.revokeObjectURL(state.previewUrl2);
+          state.img2 = img;
+          state.fileName2 = file.name;
+          state.previewUrl2 = url;
+          document.getElementById('path2').textContent = file.name;
+          const preview = document.getElementById('preview2');
+          preview.src = url;
+          preview.style.display = 'block';
+        }
+        setStatus('Image loaded.');
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Could not load image.');
+        setStatus('Image load failed.');
+      }
+    }
+
+    function clearImage(which) {
+      if (which === 1) {
+        state.img1 = null;
+        state.fileName1 = null;
+        if (state.previewUrl1) URL.revokeObjectURL(state.previewUrl1);
+        state.previewUrl1 = null;
+        document.getElementById('path1').textContent = 'No image loaded';
+        const preview = document.getElementById('preview1');
+        preview.removeAttribute('src');
+        preview.style.display = 'none';
+        document.getElementById('file1').value = '';
+      } else {
+        state.img2 = null;
+        state.fileName2 = null;
+        if (state.previewUrl2) URL.revokeObjectURL(state.previewUrl2);
+        state.previewUrl2 = null;
+        document.getElementById('path2').textContent = 'No image loaded';
+        const preview = document.getElementById('preview2');
+        preview.removeAttribute('src');
+        preview.style.display = 'none';
+        document.getElementById('file2').value = '';
+      }
+      setStatus('Image cleared.');
+    }
+
+    function clearCanvas(id) {
+      const canvas = document.getElementById(id);
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1;
+      canvas.height = 1;
+      ctx.clearRect(0, 0, 1, 1);
+    }
+
+    function clearAll() {
+      clearImage(1);
+      clearImage(2);
+      reportEl.value = '';
+      state.report = '';
+      ['qc1t', 'qc1p', 'qc2t', 'qc2p'].forEach(clearCanvas);
+      setStatus('Cleared.');
+    }
+
+    function downsampleImage(img, maxDim = 1200) {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, w, h);
+      return { canvas, ctx, width: w, height: h, imageData: ctx.getImageData(0, 0, w, h) };
+    }
+
+    function analyzeImage(img) {
+      const ds = downsampleImage(img, 1200);
+      const { width, height } = ds;
+      const src = ds.imageData.data;
+      const n = width * height;
+
+      const grayValues = new Float32Array(n);
+      const satValues = new Float32Array(n);
+      const tissueMask = new Uint8Array(n);
+      const dabValues = new Float32Array(n);
+      const dabTissue = [];
+
+      for (let i = 0, p = 0; i < n; i++, p += 4) {
+        const r = src[p];
+        const g = src[p + 1];
+        const b = src[p + 2];
+        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        const hsv = rgbToHsv(r, g, b);
+        grayValues[i] = gray;
+        satValues[i] = hsv[1] * 255;
+      }
+
+      const grayThresh = otsuThreshold(grayValues);
+      let satThresh;
+      try {
+        satThresh = otsuThreshold(satValues);
+      } catch {
+        satThresh = 10;
+      }
+      const satCutoff = Math.max(10, satThresh * 0.5);
+
+      for (let i = 0, p = 0; i < n; i++, p += 4) {
+        const isTissue = (grayValues[i] < grayThresh) || (satValues[i] > satCutoff);
+        if (isTissue) {
+          tissueMask[i] = 1;
+          const dab = getDabChannel(src[p], src[p + 1], src[p + 2]);
+          dabValues[i] = dab;
+          dabTissue.push(dab);
+        }
+      }
+
+      if (!dabTissue.length) {
+        throw new Error('No tissue pixels detected. Check the image.');
+      }
+
+      return {
+        width,
+        height,
+        src,
+        tissueMask,
+        dabValues,
+        meanDabTissue: mean(dabTissue),
+        medianDabTissue: median(dabTissue),
+        stdDabTissue: std(dabTissue),
+        tissuePixels: dabTissue.length,
+        tissueFraction: dabTissue.length / n
+      };
+    }
+
+    function drawOverlay(canvasId, analysis, mode) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      canvas.width = analysis.width;
+      canvas.height = analysis.height;
+
+      const imageData = new ImageData(new Uint8ClampedArray(analysis.src), analysis.width, analysis.height);
+      const data = imageData.data;
+
+      if (mode === 'green') {
+        for (let i = 0, p = 0; i < analysis.tissueMask.length; i++, p += 4) {
+          if (analysis.tissueMask[i]) {
+            data[p] = clamp(data[p] * 0.65, 0, 255);
+            data[p + 1] = clamp(data[p + 1] * 0.65 + 90, 0, 255);
+            data[p + 2] = clamp(data[p + 2] * 0.65, 0, 255);
+          }
+        }
+      } else {
+        let dabMin = Infinity;
+        let dabMax = -Infinity;
+        for (let i = 0; i < analysis.tissueMask.length; i++) {
+          if (!analysis.tissueMask[i]) continue;
+          const v = analysis.dabValues[i];
+          if (v < dabMin) dabMin = v;
+          if (v > dabMax) dabMax = v;
+        }
+        const range = Math.max(dabMax - dabMin, 1e-6);
+        for (let i = 0, p = 0; i < analysis.tissueMask.length; i++, p += 4) {
+          if (!analysis.tissueMask[i]) continue;
+          const norm = clamp((analysis.dabValues[i] - dabMin) / range, 0, 1);
+          data[p] = clamp(data[p] * (1 - 0.45 * norm) + 140 * norm, 0, 255);
+          data[p + 1] = clamp(data[p + 1] * (1 - 0.65 * norm), 0, 255);
+          data[p + 2] = clamp(data[p + 2] * (1 - 0.75 * norm), 0, 255);
+        }
+      }
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function buildInterpretation(direction, mappedDiff) {
+      const lines = [];
+      if (mappedDiff === null || direction === null) {
+        lines.push('Average DAB staining percent difference could not be calculated.');
+      } else if (mappedDiff === 0 || direction === 'No difference') {
+        lines.push('No DAB difference detected.');
+      } else if (direction === 'Image 2 darker / stronger') {
+        lines.push('Image 2 shows darker / stronger average DAB staining than Image 1.');
+      } else if (direction === 'Image 2 lighter / weaker') {
+        lines.push('Image 2 shows lighter / weaker average DAB staining than Image 1.');
+      } else {
+        lines.push('Direction of DAB difference could not be determined.');
+      }
+      lines.push('');
+      lines.push('Important note:');
+      lines.push('This tool reports a bounded percent difference in average DAB staining on a 0% to 100% scale, with direction shown separately as lighter / weaker or darker / stronger. Review the QC overlays before trusting the numbers.');
+      return lines.join('\n');
+    }
+
+    function buildReport(a1, a2, direction, mappedDiff) {
+      return [
+        'DAB STAINING COMPARISON REPORT',
+        '='.repeat(60),
+        '',
+        `Image 1 (Reference):  ${state.fileName1 || 'N/A'}`,
+        `Image 2 (Comparison): ${state.fileName2 || 'N/A'}`,
+        '',
+        'METHOD SUMMARY',
+        '-'.repeat(40),
+        '1. Background glass is excluded using a tissue mask from grayscale and saturation.',
+        '2. DAB signal is measured using H-DAB color deconvolution.',
+        '3. The main result is a bounded percent difference score for average DAB staining on a 0% to 100% scale, plus direction of change.',
+        '',
+        'IMAGE 1',
+        '-'.repeat(40),
+        `Mean DAB OD in tissue:          ${a1.meanDabTissue.toFixed(6)}`,
+        `Median DAB OD in tissue:        ${a1.medianDabTissue.toFixed(6)}`,
+        `SD DAB OD in tissue:            ${a1.stdDabTissue.toFixed(6)}`,
+        `Tissue pixels:                  ${a1.tissuePixels}`,
+        `Tissue fraction of image:       ${formatPct(a1.tissueFraction)}`,
+        '',
+        'IMAGE 2',
+        '-'.repeat(40),
+        `Mean DAB OD in tissue:          ${a2.meanDabTissue.toFixed(6)}`,
+        `Median DAB OD in tissue:        ${a2.medianDabTissue.toFixed(6)}`,
+        `SD DAB OD in tissue:            ${a2.stdDabTissue.toFixed(6)}`,
+        `Tissue pixels:                  ${a2.tissuePixels}`,
+        `Tissue fraction of image:       ${formatPct(a2.tissueFraction)}`,
+        '',
+        'MAIN RESULT',
+        '-'.repeat(40),
+        mappedDiff === null
+          ? 'Percent difference in average DAB staining (0% to 100%): not available'
+          : `Percent difference in average DAB staining (0% to 100%): ${(mappedDiff * 100).toFixed(2)}%`,
+        direction === null
+          ? 'Direction of change relative to Image 1: not available'
+          : `Direction of change relative to Image 1: ${direction}`,
+        '',
+        'INTERPRETATION',
+        '-'.repeat(40),
+        buildInterpretation(direction, mappedDiff),
+        '',
+        'FORMULA',
+        '-'.repeat(40),
+        'Percent difference (0% to 100%) = (| |Image 2| - |Image 1| | / max(|Image 1|, |Image 2|)) x 100',
+        'Direction is reported separately as lighter / weaker or darker / stronger.',
+        '',
+        'CAUTION',
+        '-'.repeat(40),
+        'This is a practical browser implementation of the Python logic, but it is not a validated clinical pathology platform.'
+      ].join('\n');
+    }
+
+    function compareImages() {
+      if (!state.img1 || !state.img2) {
+        alert('Please load both images first.');
+        return;
+      }
+
+      try {
+        setStatus('Analyzing images...');
+        const a1 = analyzeImage(state.img1);
+        const a2 = analyzeImage(state.img2);
+        const direction = compareDirection(a1.meanDabTissue, a2.meanDabTissue);
+        const mappedDiff = mappedDabDifference(a1.meanDabTissue, a2.meanDabTissue);
+
+        drawOverlay('qc1t', a1, 'green');
+        drawOverlay('qc1p', a1, 'red');
+        drawOverlay('qc2t', a2, 'green');
+        drawOverlay('qc2p', a2, 'red');
+
+        state.report = buildReport(a1, a2, direction, mappedDiff);
+        reportEl.value = state.report;
+        setStatus('Analysis complete. Review the QC overlays.');
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Analysis failed.');
+        setStatus('Analysis failed.');
+      }
+    }
+
+
+    function wrapText(text, maxLen = 70) {
+      return text.split('\n').map(line => {
+        if (line.length <= maxLen) return line;
+
+        let wrapped = '';
+        let remaining = line;
+
+        while (remaining.length > maxLen) {
+          let slice = remaining.slice(0, maxLen);
+          let breakPoint = slice.lastIndexOf(' ');
+          if (breakPoint <= 0) breakPoint = maxLen;
+
+          wrapped += remaining.slice(0, breakPoint).trimEnd() + '\n';
+          remaining = remaining.slice(breakPoint).trimStart();
+        }
+
+        return wrapped + remaining;
+      }).join('\n');
+    }
+
+    function exportReport() {
+      const text = wrapText(reportEl.value.trim(), 70);
+      if (!text) {
+        alert('There is no report to export.');
+        return;
+      }
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dab_comparison_report.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copyReport() {
+      const text = reportEl.value.trim();
+      if (!text) {
+        alert('There is no report to copy.');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('Report copied to clipboard.');
+      } catch {
+        alert('Clipboard copy failed in this browser.');
+      }
+    }
+
+    function openHelp() {
+      const helpWindow = window.open('HELP.txt', '_blank', 'noopener,noreferrer,width=900,height=700,resizable=yes,scrollbars=yes');
+      if (!helpWindow) {
+        alert('Unable to open Help window. Please allow pop-ups for this page.');
+        return;
+      }
+      setStatus('Help opened in a separate window.');
+    }
+
+    function wireDropzone(dropId, fileInputId, which) {
+      const drop = document.getElementById(dropId);
+      const fileInput = document.getElementById(fileInputId);
+
+      drop.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) assignFile(which, file);
+      });
+
+      ['dragenter', 'dragover'].forEach(evt => {
+        drop.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          drop.classList.add('dragover');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(evt => {
+        drop.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          drop.classList.remove('dragover');
+        });
+      });
+
+      drop.addEventListener('drop', (e) => {
+        const file = e.dataTransfer?.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+          assignFile(which, file);
+        } else {
+          alert('Please drop an image file.');
+        }
+      });
+    }
+
+    wireDropzone('drop1', 'file1', 1);
+    wireDropzone('drop2', 'file2', 2);
+
+    document.getElementById('clear1').addEventListener('click', () => clearImage(1));
+    document.getElementById('clear2').addEventListener('click', () => clearImage(2));
+    document.getElementById('compareBtn').addEventListener('click', compareImages);
+    document.getElementById('exportBtn').addEventListener('click', exportReport);
+    document.getElementById('copyBtn').addEventListener('click', copyReport);
+    document.getElementById('clearAllBtn').addEventListener('click', clearAll);
+    document.getElementById('helpBtn').addEventListener('click', openHelp);
+
+    ['qc1t', 'qc1p', 'qc2t', 'qc2p'].forEach(clearCanvas);
+  </script>
+</body>
+</html>
