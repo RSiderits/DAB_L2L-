@@ -1,909 +1,951 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DAB Comparator</title>
-  <style>
-    :root {
-      --bg: #b7e3ff;
-      --panel: #dff3ff;
-      --panel-2: #eef9ff;
-      --accent: #3399ff;
-      --accent-dark: #0b5fa5;
-      --text: #0a2a43;
-      --border: #7fc2ee;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DAB Lot-to-Lot Comparator</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --panel: #ffffff;
+    --border: #b8c2cc;
+    --text: #1f2933;
+    --muted: #52606d;
+    --accent: #1f6feb;
+    --accent2: #e6f0ff;
+    --warn: #fff4d6;
+    --warnborder: #d6a100;
+    --good: #e8f5e9;
+    --bad: #fdecea;
+  }
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
+  * { box-sizing: border-box; }
 
-    header {
-      background: linear-gradient(180deg, #77c5ff, #5fb8ff);
-      color: #06243a;
-      padding: 16px 20px 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    }
+  body {
+    margin: 0;
+    padding: 18px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
 
-    header h1 {
-      margin: 0 0 6px;
-      font-size: 26px;
-    }
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+  }
 
-    header p {
-      margin: 0;
-      font-size: 14px;
-    }
+  h2 {
+    margin: 0 0 10px 0;
+    font-size: 17px;
+  }
 
-    .container {
-      padding: 14px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
+  h3 {
+    margin: 14px 0 8px 0;
+    font-size: 15px;
+  }
 
-    .top-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
+  p {
+    margin: 6px 0;
+    line-height: 1.35;
+  }
 
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
+  .top-note {
+    max-width: 1260px;
+    margin-bottom: 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
 
-    .panel h2 {
-      margin: 0 0 10px;
-      font-size: 18px;
-      color: var(--accent-dark);
-    }
+  .app-grid {
+    display: grid;
+    grid-template-columns: minmax(780px, 1fr) minmax(430px, 500px);
+    gap: 14px;
+    max-width: 1500px;
+  }
 
-    .dropzone {
-      border: 2px dashed var(--accent);
-      border-radius: 12px;
-      background: var(--panel-2);
-      min-height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 12px;
-      cursor: pointer;
-      transition: 0.15s ease;
-      font-weight: bold;
-    }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
 
-    .dropzone.dragover {
-      background: #d2f1ff;
-      border-color: var(--accent-dark);
-      transform: scale(1.01);
-    }
+  .drop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
 
-    .file-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
+  .drop-zone {
+    min-height: 138px;
+    border: 2px dashed #8aa4bf;
+    border-radius: 10px;
+    background: #f8fbff;
+    padding: 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+  }
 
-    button, .button-label {
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
+  .drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent2);
+  }
 
-    button:hover, .button-label:hover { filter: brightness(1.05); }
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
+  .drop-title {
+    font-weight: bold;
+    font-size: 15px;
+  }
 
-    input[type="file"] { display: none; }
+  .drop-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+  }
 
-    .path {
-      width: 100%;
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 13px;
-      min-height: 38px;
-      word-break: break-all;
-    }
+  .file-input {
+    margin: 0 auto;
+    max-width: 95%;
+  }
 
-    .preview {
-      margin-top: 10px;
-      width: 100%;
-      height: 260px;
-      background: white;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+  .preview-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
 
-    .preview img {
-      max-width: 100%;
-      max-height: 100%;
-      width: auto;
-      height: auto;
-      object-fit: contain;
-      display: none;
-    }
+  .preview-card {
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    padding: 8px;
+    background: #fbfcfd;
+  }
 
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+  .preview-card canvas {
+    width: 100%;
+    max-height: 260px;
+    object-fit: contain;
+    border: 1px solid #d6dbe1;
+    background: #fff;
+  }
 
-    .control-note {
-      color: var(--accent-dark);
-      font-size: 13px;
-    }
+  .preview-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
 
-    .results-grid {
-      display: grid;
-      grid-template-columns: 480px 1fr;
-      gap: 14px;
-    }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    align-items: center;
+  }
 
-    textarea {
-      width: 100%;
-      min-height: 560px;
-      resize: vertical;
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      font-family: Consolas, monospace;
-      font-size: 13px;
-      color: #08253c;
-    }
+  button {
+    border: 1px solid #8ba4bd;
+    background: #ffffff;
+    border-radius: 7px;
+    padding: 8px 11px;
+    cursor: pointer;
+    font-size: 13px;
+  }
 
-    .qc-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    font-weight: bold;
+  }
 
-    .qc-card {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 8px;
-    }
+  button:hover { filter: brightness(0.96); }
 
-    .qc-card h3 {
-      margin: 0 0 8px;
-      font-size: 14px;
-      color: var(--accent-dark);
-    }
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 
-    .qc-stage {
-      width: 100%;
-      height: 260px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
+  .status {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccd6e0;
+    background: #f7fafc;
+    font-size: 13px;
+  }
 
-    .qc-card canvas {
-      max-width: 100%;
-      max-height: 100%;
-      width: auto;
-      height: auto;
-      display: block;
-      background: white;
-    }
+  .result-panel {
+    min-width: 0;
+    overflow: hidden;
+  }
 
-    .status {
-      padding: 10px 12px;
-      border-radius: 10px;
-      background: #e9f7ff;
-      border: 1px solid var(--border);
-      font-size: 14px;
-    }
+  .summary-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+  }
 
-    .footer-note {
-      font-size: 13px;
-      color: #0d476f;
-      line-height: 1.35;
-    }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 760px;
+    font-size: 12.5px;
+  }
 
-    @media (max-width: 1100px) {
-      .top-grid, .results-grid, .qc-grid {
-        grid-template-columns: 1fr;
-      }
-      textarea { min-height: 320px; }
-    }
-  </style>
+  th, td {
+    border-bottom: 1px solid #d8dee4;
+    border-right: 1px solid #e4e8ed;
+    padding: 7px 8px;
+    text-align: right;
+    vertical-align: top;
+    white-space: nowrap;
+  }
+
+  th:first-child, td:first-child { text-align: left; }
+  th:last-child, td:last-child { border-right: none; }
+  tr:last-child td { border-bottom: none; }
+
+  th {
+    background: #edf2f7;
+    font-weight: bold;
+  }
+
+  .callout {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--warnborder);
+    background: var(--warn);
+    font-size: 13px;
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .metric {
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    padding: 9px;
+    background: #fbfcfd;
+  }
+
+  .metric .name {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .metric .value {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 3px;
+  }
+
+  .qc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .qc-card {
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    padding: 7px;
+    background: #fbfcfd;
+  }
+
+  .qc-card canvas {
+    width: 100%;
+    max-height: 230px;
+    object-fit: contain;
+    border: 1px solid #d6dbe1;
+    background: #fff;
+  }
+
+  .small-text {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  #hiddenReport {
+    display: none;
+  }
+
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-top: 7px;
+    font-size: 11.5px;
+  }
+
+  .legend span {
+    border: 1px solid #d0d7de;
+    border-radius: 5px;
+    padding: 4px 5px;
+    background: #fff;
+    text-align: center;
+  }
+
+  @media (max-width: 1120px) {
+    .app-grid { grid-template-columns: 1fr; }
+    .drop-grid, .preview-row, .qc-grid { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1>DAB Comparator</h1>
-    <p>Single-file browser tool for relative comparison of DAB intensity between two brightfield H-DAB images. Suitable for GitHub Pages. The main output is a bounded percent difference score for average DAB staining between the two images, reported on a 0% to 100% scale with direction shown separately.</p>
-  </header>
+  <h1>DAB Lot-to-Lot Comparator</h1>
+  <div class="top-note">
+    Compare Image 1 and Image 2 using DAB optical density. The results focus on weak, moderate, and strong staining only. 
+Negative is excluded from the DAB positive result table.
+  </div>
 
-  <div class="container">
-    <div class="status" id="status">Load two images by drag-and-drop or Browse. Then click Compare Images.</div>
-
-    <div class="top-grid">
-      <section class="panel">
-        <h2>Image 1 (Reference)</h2>
-        <div id="drop1" class="dropzone">Drag and drop image 1 here<br>or click to browse</div>
-        <div class="file-row">
-          <label class="button-label" for="file1">Browse</label>
-          <button id="clear1" type="button">Clear</button>
-          <input id="file1" type="file" accept="image/*,.tif,.tiff,.png,.jpg,.jpeg,.bmp,.webp" />
-        </div>
-        <div class="path" id="path1">No image loaded</div>
-        <div class="preview"><img id="preview1" alt="Image 1 preview"></div>
-      </section>
-
-      <section class="panel">
-        <h2>Image 2 (Comparison)</h2>
-        <div id="drop2" class="dropzone">Drag and drop image 2 here<br>or click to browse</div>
-        <div class="file-row">
-          <label class="button-label" for="file2">Browse</label>
-          <button id="clear2" type="button">Clear</button>
-          <input id="file2" type="file" accept="image/*,.tif,.tiff,.png,.jpg,.jpeg,.bmp,.webp" />
-        </div>
-        <div class="path" id="path2">No image loaded</div>
-        <div class="preview"><img id="preview2" alt="Image 2 preview"></div>
-      </section>
-    </div>
-
+  <div class="app-grid">
     <section class="panel">
-      <div class="controls">
-        <button id="compareBtn" type="button">Compare Images</button>
-        <button id="exportBtn" type="button">Export Report</button>
-        <button id="copyBtn" type="button">Copy Report</button>
-        <button id="clearAllBtn" type="button">Clear All</button>
-        <button id="helpBtn" type="button">Help</button>
-        <span class="control-note">Runs fully in the browser. No server required. Drag-and-drop and Browse are both supported.</span>
+      <h2>Image Input</h2>
+      <div class="drop-grid">
+        <div class="drop-zone" id="drop1">
+          <div class="drop-title">Image 1 / Reference Lot</div>
+          <div class="drop-subtitle">Drag and drop image or choose file</div>
+          <input class="file-input" type="file" id="file1" accept="image/*" />
+          <div class="drop-subtitle" id="name1">No image loaded</div>
+        </div>
+        <div class="drop-zone" id="drop2">
+          <div class="drop-title">Image 2 / Candidate Lot</div>
+          <div class="drop-subtitle">Drag and drop image or choose file</div>
+          <input class="file-input" type="file" id="file2" accept="image/*" />
+          <div class="drop-subtitle" id="name2">No image loaded</div>
+        </div>
       </div>
+
+      <div class="preview-row">
+        <div class="preview-card">
+          <div class="preview-label">Image 1 Preview</div>
+          <canvas id="preview1"></canvas>
+        </div>
+        <div class="preview-card">
+          <div class="preview-label">Image 2 Preview</div>
+          <canvas id="preview2"></canvas>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="primary" id="analyzeBtn">Calculate</button>
+        <button id="copyBtn" disabled>Copy Report</button>
+        <button id="exportBtn" disabled>Export Report</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+
+      <div class="status" id="statusBox">Load two images, then press Calculate.</div>
     </section>
 
-    <div class="results-grid">
-      <section class="panel">
-        <h2>Results</h2>
-        <textarea id="report" spellcheck="false" readonly></textarea>
-      </section>
+    <section class="panel result-panel">
+      <h2>RESULT</h2>
 
-      <section class="panel">
-        <h2>QC Preview</h2>
-        <div class="qc-grid">
-          <div class="qc-card">
-            <h3>Image 1 Tissue Mask</h3>
-            <div class="qc-stage"><canvas id="qc1t"></canvas></div>
-          </div>
-          <div class="qc-card">
-            <h3>Image 1 DAB Overlay</h3>
-            <div class="qc-stage"><canvas id="qc1p"></canvas></div>
-          </div>
-          <div class="qc-card">
-            <h3>Image 2 Tissue Mask</h3>
-            <div class="qc-stage"><canvas id="qc2t"></canvas></div>
-          </div>
-          <div class="qc-card">
-            <h3>Image 2 DAB Overlay</h3>
-            <div class="qc-stage"><canvas id="qc2p"></canvas></div>
-          </div>
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="name">Overall Image 1 Mean DAB OD</div>
+          <div class="value" id="overall1">--</div>
         </div>
-      </section>
-    </div>
+        <div class="metric">
+          <div class="name">Overall Image 2 Mean DAB OD</div>
+          <div class="value" id="overall2">--</div>
+        </div>
+        <div class="metric">
+          <div class="name">Overall Percent Difference</div>
+          <div class="value" id="overallDiff">--</div>
+        </div>
+        <div class="metric">
+          <div class="name">Overall Direction</div>
+          <div class="value" id="overallDirection">--</div>
+        </div>
+      </div>
 
-    <section class="panel footer-note">
-      <strong>Method note:</strong> this browser version follows the same core logic as the Python script: tissue masking from brightness and saturation, H-DAB color deconvolution, and percent difference in average DAB staining. The main reported result is a DAB-only bounded percent difference score from 0% to 100%, with direction shown separately. It is still a relative comparison tool, not a validated clinical analysis platform.
+      <h3>Structured Summary</h3>
+      <div class="summary-table-wrap">
+        <table id="bucketTable">
+          <thead>
+            <tr>
+              <th>Bucket</th>
+              <th>Image 1 Mean OD</th>
+              <th>Image 2 Mean OD</th>
+              <th>Intensity % Diff</th>
+              <th>Image 1 Area %</th>
+              <th>Image 2 Area %</th>
+              <th>Area Delta</th>
+              <th>Direction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Weak</td><td id="weakMean1">--</td><td id="weakMean2">--</td><td id="weakDiff">--</td><td id="weakArea1">--</td><td id="weakArea2">--</td><td id="weakAreaDelta">--</td><td id="weakDirection">--</td></tr>
+            <tr><td>Moderate</td><td id="moderateMean1">--</td><td id="moderateMean2">--</td><td id="moderateDiff">--</td><td id="moderateArea1">--</td><td id="moderateArea2">--</td><td id="moderateAreaDelta">--</td><td id="moderateDirection">--</td></tr>
+            <tr><td>Strong</td><td id="strongMean1">--</td><td id="strongMean2">--</td><td id="strongDiff">--</td><td id="strongArea1">--</td><td id="strongArea2">--</td><td id="strongAreaDelta">--</td><td id="strongDirection">--</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout" id="greatestBucket">Greatest bucket-level intensity difference: --</div>
+
+      <h3>QC Preview</h3>
+      <div class="small-text">Overlay colors: weak / moderate / strong. Negative/background is intentionally not shown in the visible bucket result.</div>
+      <div class="legend">
+        <span>Weak = pale blue</span>
+        <span>Moderate = orange</span>
+        <span>Strong = red</span>
+      </div>
+      <div class="qc-grid">
+        <div class="qc-card">
+          <div class="preview-label">Image 1 QC Overlay</div>
+          <canvas id="qc1"></canvas>
+        </div>
+        <div class="qc-card">
+          <div class="preview-label">Image 2 QC Overlay</div>
+          <canvas id="qc2"></canvas>
+        </div>
+      </div>
     </section>
   </div>
 
-  <script>
-    const state = {
-      img1: null,
-      img2: null,
-      fileName1: null,
-      fileName2: null,
-      previewUrl1: null,
-      previewUrl2: null,
-      report: ''
+  <textarea id="hiddenReport"></textarea>
+
+<script>
+(function () {
+  const state = {
+    image1: null,
+    image2: null,
+    fileName1: "Image 1",
+    fileName2: "Image 2",
+    lastReport: ""
+  };
+
+  const ids = id => document.getElementById(id);
+
+  const file1 = ids("file1");
+  const file2 = ids("file2");
+  const drop1 = ids("drop1");
+  const drop2 = ids("drop2");
+  const analyzeBtn = ids("analyzeBtn");
+  const copyBtn = ids("copyBtn");
+  const exportBtn = ids("exportBtn");
+  const resetBtn = ids("resetBtn");
+
+  file1.addEventListener("change", e => loadFile(e.target.files[0], 1));
+  file2.addEventListener("change", e => loadFile(e.target.files[0], 2));
+  analyzeBtn.addEventListener("click", analyze);
+  copyBtn.addEventListener("click", copyReport);
+  exportBtn.addEventListener("click", exportReport);
+  resetBtn.addEventListener("click", resetAll);
+
+  setupDrop(drop1, 1);
+  setupDrop(drop2, 2);
+
+  function setupDrop(zone, index) {
+    ["dragenter", "dragover"].forEach(evt => {
+      zone.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.add("dragover");
+      });
+    });
+    ["dragleave", "drop"].forEach(evt => {
+      zone.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.remove("dragover");
+      });
+    });
+    zone.addEventListener("drop", e => {
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      loadFile(file, index);
+    });
+  }
+
+  function loadFile(file, index) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setStatus("Please load an image file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const img = new Image();
+      img.onload = function () {
+        if (index === 1) {
+          state.image1 = img;
+          state.fileName1 = file.name || "Image 1";
+          ids("name1").textContent = state.fileName1;
+          drawPreview(img, ids("preview1"));
+        } else {
+          state.image2 = img;
+          state.fileName2 = file.name || "Image 2";
+          ids("name2").textContent = state.fileName2;
+          drawPreview(img, ids("preview2"));
+        }
+        setStatus("Image loaded. Load both images, then press Calculate.");
+      };
+      img.onerror = function () {
+        setStatus("Could not read that image file.");
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function drawPreview(img, canvas) {
+    const maxW = 680;
+    const maxH = 360;
+    const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  }
+
+  function analyze() {
+    if (!state.image1 || !state.image2) {
+      setStatus("Load both images before calculating. The software is not psychic.");
+      return;
+    }
+
+    setStatus("Analyzing DAB optical density...");
+
+    const analysis1 = getDabPixels(state.image1);
+    const analysis2 = getDabPixels(state.image2);
+
+    if (analysis1.values.length < 100 || analysis2.values.length < 100) {
+      setStatus("Too few tissue/stain pixels detected. Check image quality and field selection.");
+      return;
+    }
+
+    const combined = analysis1.values.concat(analysis2.values).sort((a, b) => a - b);
+    const thresholds = deriveThresholds(combined);
+
+    const result1 = summarizeBuckets(analysis1.values, thresholds);
+    const result2 = summarizeBuckets(analysis2.values, thresholds);
+
+    const overall1 = mean(analysis1.values);
+    const overall2 = mean(analysis2.values);
+    const overallDiff = percentDifference(overall1, overall2);
+    const overallDirection = direction(overall1, overall2, "overall");
+
+    updateMetrics(overall1, overall2, overallDiff, overallDirection);
+    updateBucketTable(result1, result2);
+    updateGreatestBucket(result1, result2);
+
+    drawOverlay(state.image1, ids("qc1"), thresholds);
+    drawOverlay(state.image2, ids("qc2"), thresholds);
+
+    const report = buildReport({
+      overall1,
+      overall2,
+      overallDiff,
+      overallDirection,
+      result1,
+      result2,
+      thresholds
+    });
+
+    state.lastReport = report;
+    ids("hiddenReport").value = report;
+    copyBtn.disabled = false;
+    exportBtn.disabled = false;
+
+    setStatus("Analysis complete. Review the Structured Summary table and QC overlays before trusting the numbers. Overall mean DAB OD difference: " + fmtPct(overallDiff) + "; Image 2 is " + overallDirection + " than Image 1.");
+  }
+
+  function getDabPixels(img) {
+    const maxDim = 1200;
+    const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
+    const w = Math.max(1, Math.round(img.width * scale));
+    const h = Math.max(1, Math.round(img.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, w, h);
+    const data = ctx.getImageData(0, 0, w, h).data;
+    const values = [];
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+      if (a < 20) continue;
+
+      const brightness = (r + g + b) / 3;
+      const saturation = max3(r, g, b) - min3(r, g, b);
+
+      // Exclude near-white background and very dark junk/artifact.
+      if (brightness > 238 && saturation < 18) continue;
+      if (brightness < 18) continue;
+
+      const dab = dabOD(r, g, b);
+
+      // Keep tissue pixels, including weak DAB. Avoid pure white/background.
+      if (dab > 0.015 || brightness < 225) {
+        values.push(dab);
+      }
+    }
+
+    return { values };
+  }
+
+  function dabOD(r, g, b) {
+    // Practical DAB-biased optical density estimate.
+    // DAB brown tends to reduce blue more than red/green. This is not formal color deconvolution,
+    // but is stable for relative lot-to-lot comparisons in similar ROIs.
+    const rn = Math.max(r, 1) / 255;
+    const gn = Math.max(g, 1) / 255;
+    const bn = Math.max(b, 1) / 255;
+    const odR = -Math.log(rn);
+    const odG = -Math.log(gn);
+    const odB = -Math.log(bn);
+    const brownBias = Math.max(0, odB - (odR * 0.55));
+    const od = (0.28 * odR) + (0.45 * odG) + (0.27 * odB) + (0.25 * brownBias);
+    return Math.max(0, od);
+  }
+
+  function deriveThresholds(sorted) {
+    // Common thresholds from combined distribution so both lots are evaluated on the same scale.
+    // Negative is calculated internally but omitted from the displayed result table.
+    return {
+      negativeWeak: percentile(sorted, 0.25),
+      weakModerate: percentile(sorted, 0.55),
+      moderateStrong: percentile(sorted, 0.82)
+    };
+  }
+
+  function summarizeBuckets(values, thresholds) {
+    const buckets = {
+      weak: [],
+      moderate: [],
+      strong: []
     };
 
-    const statusEl = document.getElementById('status');
-    const reportEl = document.getElementById('report');
-
-    function setStatus(msg) {
-      statusEl.textContent = msg;
-    }
-
-    function clamp(v, lo, hi) {
-      return Math.max(lo, Math.min(hi, v));
-    }
-
-    function mean(arr) {
-      if (!arr.length) return 0;
-      let s = 0;
-      for (let i = 0; i < arr.length; i++) s += arr[i];
-      return s / arr.length;
-    }
-
-    function median(arr) {
-      if (!arr.length) return 0;
-      const copy = Array.from(arr).sort((a, b) => a - b);
-      const m = Math.floor(copy.length / 2);
-      return copy.length % 2 ? copy[m] : (copy[m - 1] + copy[m]) / 2;
-    }
-
-    function std(arr, mu = null) {
-      if (!arr.length) return 0;
-      const m = mu === null ? mean(arr) : mu;
-      let s = 0;
-      for (let i = 0; i < arr.length; i++) {
-        const d = arr[i] - m;
-        s += d * d;
+    for (const v of values) {
+      if (v < thresholds.negativeWeak) {
+        // Negative bucket intentionally ignored in final result.
+        continue;
+      } else if (v < thresholds.weakModerate) {
+        buckets.weak.push(v);
+      } else if (v < thresholds.moderateStrong) {
+        buckets.moderate.push(v);
+      } else {
+        buckets.strong.push(v);
       }
-      return Math.sqrt(s / arr.length);
     }
 
-    function percentile(arr, p) {
-      if (!arr.length) return 0;
-      const copy = Array.from(arr).sort((a, b) => a - b);
-      const idx = (copy.length - 1) * p;
-      const lo = Math.floor(idx);
-      const hi = Math.ceil(idx);
-      if (lo === hi) return copy[lo];
-      const frac = idx - lo;
-      return copy[lo] * (1 - frac) + copy[hi] * frac;
+    const total = values.length || 1;
+    return {
+      weak: bucketStats(buckets.weak, total),
+      moderate: bucketStats(buckets.moderate, total),
+      strong: bucketStats(buckets.strong, total)
+    };
+  }
+
+  function bucketStats(arr, total) {
+    return {
+      n: arr.length,
+      mean: arr.length ? mean(arr) : null,
+      areaPct: (arr.length / total) * 100
+    };
+  }
+
+  function updateMetrics(overall1, overall2, diff, dir) {
+    ids("overall1").textContent = fmt(overall1);
+    ids("overall2").textContent = fmt(overall2);
+    ids("overallDiff").textContent = fmtPct(diff);
+    ids("overallDirection").textContent = dir;
+  }
+
+  function updateBucketTable(r1, r2) {
+    updateRow("weak", r1.weak, r2.weak);
+    updateRow("moderate", r1.moderate, r2.moderate);
+    updateRow("strong", r1.strong, r2.strong);
+  }
+
+  function updateRow(name, b1, b2) {
+    const diff = percentDifferenceNullable(b1.mean, b2.mean);
+    const areaDelta = b2.areaPct - b1.areaPct;
+    const dir = directionNullable(b1.mean, b2.mean);
+
+    ids(name + "Mean1").textContent = fmtNullable(b1.mean);
+    ids(name + "Mean2").textContent = fmtNullable(b2.mean);
+    ids(name + "Diff").textContent = fmtPctNullable(diff);
+    ids(name + "Area1").textContent = fmtPct(b1.areaPct);
+    ids(name + "Area2").textContent = fmtPct(b2.areaPct);
+    ids(name + "AreaDelta").textContent = signedPct(areaDelta);
+    ids(name + "Direction").textContent = dir;
+  }
+
+  function updateGreatestBucket(r1, r2) {
+    const rows = [
+      { label: "Weak", diff: percentDifferenceNullable(r1.weak.mean, r2.weak.mean), b1: r1.weak, b2: r2.weak },
+      { label: "Moderate", diff: percentDifferenceNullable(r1.moderate.mean, r2.moderate.mean), b1: r1.moderate, b2: r2.moderate },
+      { label: "Strong", diff: percentDifferenceNullable(r1.strong.mean, r2.strong.mean), b1: r1.strong, b2: r2.strong }
+    ].filter(x => x.diff !== null && isFinite(x.diff));
+
+    if (!rows.length) {
+      ids("greatestBucket").textContent = "Greatest bucket-level intensity difference: not available.";
+      return;
     }
 
-    function mappedDabDifference(ref, cmp) {
-      if (ref === null || cmp === null) return null;
-      const refMag = Math.abs(ref);
-      const cmpMag = Math.abs(cmp);
-      const denom = Math.max((refMag + cmpMag) / 2, 1e-12);
-      return Math.abs(cmpMag - refMag) / denom;
-    }
+    rows.sort((a, b) => b.diff - a.diff);
+    const top = rows[0];
+    const dir = directionNullable(top.b1.mean, top.b2.mean);
+    ids("greatestBucket").textContent = "Greatest bucket-level intensity difference: " + top.label + " (" + fmtPct(top.diff) + "; Image 2 is " + dir + " than Image 1).";
+  }
 
-    function compareDirection(ref, cmp) {
-      if (ref === null || cmp === null) return null;
-      const refMag = Math.abs(ref);
-      const cmpMag = Math.abs(cmp);
-      if (Math.abs(cmpMag - refMag) < 1e-12) return 'No difference';
-      return cmpMag > refMag ? 'Image 2 darker / stronger' : 'Image 2 lighter / weaker';
-    }
+  function drawOverlay(img, canvas, thresholds) {
+    const maxW = 520;
+    const maxH = 360;
+    const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+    const w = Math.max(1, Math.round(img.width * scale));
+    const h = Math.max(1, Math.round(img.height * scale));
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, w, h);
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const d = imageData.data;
 
-    function formatPct(x) {
-      return `${(x * 100).toFixed(2)}%`;
-    }
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i];
+      const g = d[i + 1];
+      const b = d[i + 2];
+      const brightness = (r + g + b) / 3;
+      const saturation = max3(r, g, b) - min3(r, g, b);
+      if (brightness > 238 && saturation < 18) continue;
+      if (brightness < 18) continue;
 
-    function rgbToHsv(r, g, b) {
-      r /= 255; g /= 255; b /= 255;
-      const max = Math.max(r, g, b), min = Math.min(r, g, b);
-      const d = max - min;
-      let h = 0;
-      const s = max === 0 ? 0 : d / max;
-      const v = max;
+      const v = dabOD(r, g, b);
 
-      if (d !== 0) {
-        switch (max) {
-          case r: h = ((g - b) / d + (g < b ? 6 : 0)); break;
-          case g: h = ((b - r) / d + 2); break;
-          case b: h = ((r - g) / d + 4); break;
-        }
-        h /= 6;
+      if (v < thresholds.negativeWeak) {
+        continue;
+      } else if (v < thresholds.weakModerate) {
+        blend(d, i, 90, 170, 255, 0.42); // weak pale blue
+      } else if (v < thresholds.moderateStrong) {
+        blend(d, i, 255, 165, 0, 0.45); // moderate orange
+      } else {
+        blend(d, i, 220, 40, 40, 0.48); // strong red
       }
-      return [h * 360, s, v];
     }
 
-    function invert3x3(m) {
-      const [a,b,c,d,e,f,g,h,i] = m;
-      const A = e*i - f*h;
-      const B = -(d*i - f*g);
-      const C = d*h - e*g;
-      const D = -(b*i - c*h);
-      const E = a*i - c*g;
-      const F = -(a*h - b*g);
-      const G = b*f - c*e;
-      const H = -(a*f - c*d);
-      const I = a*e - b*d;
-      const det = a*A + b*B + c*C;
-      if (Math.abs(det) < 1e-12) throw new Error('Could not invert stain matrix.');
-      return [A/det, D/det, G/det, B/det, E/det, H/det, C/det, F/det, I/det];
-    }
+    ctx.putImageData(imageData, 0, 0);
+  }
 
-    const RGB_FROM_HED = [
-      0.65, 0.70, 0.29,
-      0.07, 0.99, 0.11,
-      0.27, 0.57, 0.78
+  function blend(d, i, rr, gg, bb, alpha) {
+    d[i] = Math.round((1 - alpha) * d[i] + alpha * rr);
+    d[i + 1] = Math.round((1 - alpha) * d[i + 1] + alpha * gg);
+    d[i + 2] = Math.round((1 - alpha) * d[i + 2] + alpha * bb);
+  }
+
+  function buildReport(obj) {
+    const lines = [];
+    lines.push("DAB LOT-TO-LOT COMPARISON REPORT");
+    lines.push("========================================");
+    lines.push("Generated: " + new Date().toLocaleString());
+    lines.push("Image 1 / Reference Lot: " + state.fileName1);
+    lines.push("Image 2 / Candidate Lot: " + state.fileName2);
+    lines.push("");
+    lines.push("OVERALL DAB OPTICAL DENSITY");
+    lines.push("----------------------------------------");
+    lines.push("Image 1 Mean DAB OD: " + fmt(obj.overall1));
+    lines.push("Image 2 Mean DAB OD: " + fmt(obj.overall2));
+    lines.push("Overall percent difference: " + fmtPct(obj.overallDiff));
+    lines.push("Overall direction: Image 2 is " + obj.overallDirection + " than Image 1.");
+    lines.push("");
+    lines.push("STRUCTURED SUMMARY: WEAK / MODERATE / STRONG ONLY");
+    lines.push("----------------------------------------");
+    lines.push(rowText("Weak", obj.result1.weak, obj.result2.weak));
+    lines.push(rowText("Moderate", obj.result1.moderate, obj.result2.moderate));
+    lines.push(rowText("Strong", obj.result1.strong, obj.result2.strong));
+    lines.push("");
+    lines.push(greatestText(obj.result1, obj.result2));
+    lines.push("");
+    lines.push("COMMON THRESHOLDS USED INTERNALLY");
+    lines.push("----------------------------------------");
+    lines.push("Negative/Weak cutoff: " + fmt(obj.thresholds.negativeWeak));
+    lines.push("Weak/Moderate cutoff: " + fmt(obj.thresholds.weakModerate));
+    lines.push("Moderate/Strong cutoff: " + fmt(obj.thresholds.moderateStrong));
+    lines.push("");
+    lines.push("Important note:");
+    lines.push("The bucket-level comparison uses common negative/weak/moderate/strong thresholds derived from the combined DAB OD distribution of both images. This keeps both lots on the same relative scale. Review the QC overlays before trusting the numbers.");
+    lines.push("");
+    lines.push("FORMULAS");
+    lines.push("----------------------------------------");
+    lines.push("Overall percent difference = (|Image 2 Mean DAB OD - Image 1 Mean DAB OD| / average of the two Mean DAB OD values) x 100");
+    lines.push("Bucket intensity percent difference uses the same formula, but compares the mean DAB OD within that bucket only.");
+    lines.push("Area delta = Image 2 bucket tissue fraction - Image 1 bucket tissue fraction.");
+    lines.push("Direction is reported separately as lighter / weaker or darker / stronger.");
+    lines.push("");
+    lines.push("CAUTION");
+    lines.push("----------------------------------------");
+    lines.push("This is a practical browser implementation for relative research comparison. It is not a validated clinical pathology platform.");
+    return lines.join("\n");
+  }
+
+  function rowText(label, b1, b2) {
+    const diff = percentDifferenceNullable(b1.mean, b2.mean);
+    const areaDelta = b2.areaPct - b1.areaPct;
+    return label + ": Image 1 mean OD " + fmtNullable(b1.mean) + "; Image 2 mean OD " + fmtNullable(b2.mean) + "; intensity difference " + fmtPctNullable(diff) + "; Image 1 area " + fmtPct(b1.areaPct) + "; Image 2 area " + fmtPct(b2.areaPct) + "; area delta " + signedPct(areaDelta) + "; direction " + directionNullable(b1.mean, b2.mean) + ".";
+  }
+
+  function greatestText(r1, r2) {
+    const rows = [
+      { label: "Weak", diff: percentDifferenceNullable(r1.weak.mean, r2.weak.mean), b1: r1.weak, b2: r2.weak },
+      { label: "Moderate", diff: percentDifferenceNullable(r1.moderate.mean, r2.moderate.mean), b1: r1.moderate, b2: r2.moderate },
+      { label: "Strong", diff: percentDifferenceNullable(r1.strong.mean, r2.strong.mean), b1: r1.strong, b2: r2.strong }
+    ].filter(x => x.diff !== null && isFinite(x.diff));
+    if (!rows.length) return "Greatest bucket-level intensity difference: not available.";
+    rows.sort((a, b) => b.diff - a.diff);
+    const top = rows[0];
+    return "Greatest bucket-level intensity difference: " + top.label + " (" + fmtPct(top.diff) + "; Image 2 is " + directionNullable(top.b1.mean, top.b2.mean) + " than Image 1).";
+  }
+
+  async function copyReport() {
+    if (!state.lastReport) return;
+    try {
+      await navigator.clipboard.writeText(state.lastReport);
+      alert("Report copied:\n\n" + state.lastReport);
+    } catch (err) {
+      ids("hiddenReport").style.display = "block";
+      ids("hiddenReport").select();
+      document.execCommand("copy");
+      ids("hiddenReport").style.display = "none";
+      alert("Report copied. Clipboard fallback used.");
+    }
+  }
+
+  function exportReport() {
+    if (!state.lastReport) return;
+    const blob = new Blob([state.lastReport], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "DAB_lot_to_lot_comparison_report.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function resetAll() {
+    state.image1 = null;
+    state.image2 = null;
+    state.fileName1 = "Image 1";
+    state.fileName2 = "Image 2";
+    state.lastReport = "";
+    file1.value = "";
+    file2.value = "";
+    ids("name1").textContent = "No image loaded";
+    ids("name2").textContent = "No image loaded";
+    clearCanvas(ids("preview1"));
+    clearCanvas(ids("preview2"));
+    clearCanvas(ids("qc1"));
+    clearCanvas(ids("qc2"));
+    copyBtn.disabled = true;
+    exportBtn.disabled = true;
+    resetResultText();
+    setStatus("Load two images, then press Calculate.");
+  }
+
+  function resetResultText() {
+    const fields = [
+      "overall1", "overall2", "overallDiff", "overallDirection",
+      "weakMean1", "weakMean2", "weakDiff", "weakArea1", "weakArea2", "weakAreaDelta", "weakDirection",
+      "moderateMean1", "moderateMean2", "moderateDiff", "moderateArea1", "moderateArea2", "moderateAreaDelta", "moderateDirection",
+      "strongMean1", "strongMean2", "strongDiff", "strongArea1", "strongArea2", "strongAreaDelta", "strongDirection"
     ];
-    const HED_FROM_RGB = invert3x3(RGB_FROM_HED);
+    fields.forEach(id => ids(id).textContent = "--");
+    ids("greatestBucket").textContent = "Greatest bucket-level intensity difference: --";
+  }
 
-    function getDabChannel(r, g, b) {
-      const rf = Math.max(r / 255, 1e-6);
-      const gf = Math.max(g / 255, 1e-6);
-      const bf = Math.max(b / 255, 1e-6);
-      const odR = -Math.log(rf);
-      const odG = -Math.log(gf);
-      const odB = -Math.log(bf);
+  function clearCanvas(canvas) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width || 1, canvas.height || 1);
+    canvas.width = 1;
+    canvas.height = 1;
+  }
 
-      return (
-        HED_FROM_RGB[6] * odR +
-        HED_FROM_RGB[7] * odG +
-        HED_FROM_RGB[8] * odB
-      );
-    }
+  function setStatus(msg) {
+    ids("statusBox").textContent = msg;
+  }
 
-    function otsuThreshold(values, bins = 256) {
-      if (!values.length) return 0;
-      let min = Infinity;
-      let max = -Infinity;
-      for (let i = 0; i < values.length; i++) {
-        const v = values[i];
-        if (v < min) min = v;
-        if (v > max) max = v;
-      }
-      if (max <= min) return min;
+  function mean(arr) {
+    if (!arr || !arr.length) return null;
+    let s = 0;
+    for (const v of arr) s += v;
+    return s / arr.length;
+  }
 
-      const hist = new Array(bins).fill(0);
-      const scale = (bins - 1) / (max - min);
-      for (let i = 0; i < values.length; i++) {
-        const idx = clamp(Math.floor((values[i] - min) * scale), 0, bins - 1);
-        hist[idx]++;
-      }
+  function percentile(sorted, p) {
+    if (!sorted.length) return 0;
+    const idx = Math.min(sorted.length - 1, Math.max(0, Math.floor(p * (sorted.length - 1))));
+    return sorted[idx];
+  }
 
-      let total = values.length;
-      let sum = 0;
-      for (let i = 0; i < bins; i++) sum += i * hist[i];
+  function percentDifference(a, b) {
+    const avg = (Math.abs(a) + Math.abs(b)) / 2;
+    if (avg === 0) return 0;
+    return (Math.abs(b - a) / avg) * 100;
+  }
 
-      let sumB = 0;
-      let wB = 0;
-      let maxVar = -1;
-      let threshold = 0;
+  function percentDifferenceNullable(a, b) {
+    if (a === null || b === null || !isFinite(a) || !isFinite(b)) return null;
+    return percentDifference(a, b);
+  }
 
-      for (let i = 0; i < bins; i++) {
-        wB += hist[i];
-        if (wB === 0) continue;
-        const wF = total - wB;
-        if (wF === 0) break;
-        sumB += i * hist[i];
-        const mB = sumB / wB;
-        const mF = (sum - sumB) / wF;
-        const between = wB * wF * (mB - mF) * (mB - mF);
-        if (between > maxVar) {
-          maxVar = between;
-          threshold = i;
-        }
-      }
+  function direction(a, b) {
+    const eps = 1e-9;
+    if (Math.abs(b - a) < eps) return "similar";
+    return b > a ? "darker / stronger" : "lighter / weaker";
+  }
 
-      return min + (threshold / (bins - 1)) * (max - min);
-    }
+  function directionNullable(a, b) {
+    if (a === null || b === null || !isFinite(a) || !isFinite(b)) return "not available";
+    return direction(a, b);
+  }
 
-    function createImageFromUrl(url) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('Could not load image preview.'));
-        img.src = url;
-      });
-    }
+  function fmt(x) {
+    if (x === null || !isFinite(x)) return "--";
+    return Number(x).toFixed(3);
+  }
 
-    async function assignFile(which, file) {
-      try {
-        const url = URL.createObjectURL(file);
-        const img = await createImageFromUrl(url);
+  function fmtNullable(x) {
+    return fmt(x);
+  }
 
-        if (which === 1) {
-          if (state.previewUrl1) URL.revokeObjectURL(state.previewUrl1);
-          state.img1 = img;
-          state.fileName1 = file.name;
-          state.previewUrl1 = url;
-          document.getElementById('path1').textContent = file.name;
-          const preview = document.getElementById('preview1');
-          preview.src = url;
-          preview.style.display = 'block';
-        } else {
-          if (state.previewUrl2) URL.revokeObjectURL(state.previewUrl2);
-          state.img2 = img;
-          state.fileName2 = file.name;
-          state.previewUrl2 = url;
-          document.getElementById('path2').textContent = file.name;
-          const preview = document.getElementById('preview2');
-          preview.src = url;
-          preview.style.display = 'block';
-        }
-        setStatus('Image loaded.');
-      } catch (err) {
-        console.error(err);
-        alert(err.message || 'Could not load image.');
-        setStatus('Image load failed.');
-      }
-    }
+  function fmtPct(x) {
+    if (x === null || !isFinite(x)) return "--";
+    return Number(x).toFixed(1) + "%";
+  }
 
-    function clearImage(which) {
-      if (which === 1) {
-        state.img1 = null;
-        state.fileName1 = null;
-        if (state.previewUrl1) URL.revokeObjectURL(state.previewUrl1);
-        state.previewUrl1 = null;
-        document.getElementById('path1').textContent = 'No image loaded';
-        const preview = document.getElementById('preview1');
-        preview.removeAttribute('src');
-        preview.style.display = 'none';
-        document.getElementById('file1').value = '';
-      } else {
-        state.img2 = null;
-        state.fileName2 = null;
-        if (state.previewUrl2) URL.revokeObjectURL(state.previewUrl2);
-        state.previewUrl2 = null;
-        document.getElementById('path2').textContent = 'No image loaded';
-        const preview = document.getElementById('preview2');
-        preview.removeAttribute('src');
-        preview.style.display = 'none';
-        document.getElementById('file2').value = '';
-      }
-      setStatus('Image cleared.');
-    }
+  function fmtPctNullable(x) {
+    return fmtPct(x);
+  }
 
-    function clearCanvas(id) {
-      const canvas = document.getElementById(id);
-      const ctx = canvas.getContext('2d');
-      canvas.width = 1;
-      canvas.height = 1;
-      ctx.clearRect(0, 0, 1, 1);
-    }
+  function signedPct(x) {
+    if (x === null || !isFinite(x)) return "--";
+    const sign = x > 0 ? "+" : "";
+    return sign + Number(x).toFixed(1) + "%";
+  }
 
-    function clearAll() {
-      clearImage(1);
-      clearImage(2);
-      reportEl.value = '';
-      state.report = '';
-      ['qc1t', 'qc1p', 'qc2t', 'qc2p'].forEach(clearCanvas);
-      setStatus('Cleared.');
-    }
-
-    function downsampleImage(img, maxDim = 1200) {
-      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-      const w = Math.max(1, Math.round(img.width * scale));
-      const h = Math.max(1, Math.round(img.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(img, 0, 0, w, h);
-      return { canvas, ctx, width: w, height: h, imageData: ctx.getImageData(0, 0, w, h) };
-    }
-
-    function analyzeImage(img) {
-      const ds = downsampleImage(img, 1200);
-      const { width, height } = ds;
-      const src = ds.imageData.data;
-      const n = width * height;
-
-      const grayValues = new Float32Array(n);
-      const satValues = new Float32Array(n);
-      const tissueMask = new Uint8Array(n);
-      const dabValues = new Float32Array(n);
-      const dabTissue = [];
-
-      for (let i = 0, p = 0; i < n; i++, p += 4) {
-        const r = src[p];
-        const g = src[p + 1];
-        const b = src[p + 2];
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-        const hsv = rgbToHsv(r, g, b);
-        grayValues[i] = gray;
-        satValues[i] = hsv[1] * 255;
-      }
-
-      const grayThresh = otsuThreshold(grayValues);
-      let satThresh;
-      try {
-        satThresh = otsuThreshold(satValues);
-      } catch {
-        satThresh = 10;
-      }
-      const satCutoff = Math.max(10, satThresh * 0.5);
-
-      for (let i = 0, p = 0; i < n; i++, p += 4) {
-        const isTissue = (grayValues[i] < grayThresh) || (satValues[i] > satCutoff);
-        if (isTissue) {
-          tissueMask[i] = 1;
-          const dab = getDabChannel(src[p], src[p + 1], src[p + 2]);
-          dabValues[i] = dab;
-          dabTissue.push(dab);
-        }
-      }
-
-      if (!dabTissue.length) {
-        throw new Error('No tissue pixels detected. Check the image.');
-      }
-
-      return {
-        width,
-        height,
-        src,
-        tissueMask,
-        dabValues,
-        meanDabTissue: mean(dabTissue),
-        medianDabTissue: median(dabTissue),
-        stdDabTissue: std(dabTissue),
-        tissuePixels: dabTissue.length,
-        tissueFraction: dabTissue.length / n
-      };
-    }
-
-    function drawOverlay(canvasId, analysis, mode) {
-      const canvas = document.getElementById(canvasId);
-      const ctx = canvas.getContext('2d');
-      canvas.width = analysis.width;
-      canvas.height = analysis.height;
-
-      const imageData = new ImageData(new Uint8ClampedArray(analysis.src), analysis.width, analysis.height);
-      const data = imageData.data;
-
-      if (mode === 'green') {
-        for (let i = 0, p = 0; i < analysis.tissueMask.length; i++, p += 4) {
-          if (analysis.tissueMask[i]) {
-            data[p] = clamp(data[p] * 0.65, 0, 255);
-            data[p + 1] = clamp(data[p + 1] * 0.65 + 90, 0, 255);
-            data[p + 2] = clamp(data[p + 2] * 0.65, 0, 255);
-          }
-        }
-      } else {
-        let dabMin = Infinity;
-        let dabMax = -Infinity;
-        for (let i = 0; i < analysis.tissueMask.length; i++) {
-          if (!analysis.tissueMask[i]) continue;
-          const v = analysis.dabValues[i];
-          if (v < dabMin) dabMin = v;
-          if (v > dabMax) dabMax = v;
-        }
-        const range = Math.max(dabMax - dabMin, 1e-6);
-        for (let i = 0, p = 0; i < analysis.tissueMask.length; i++, p += 4) {
-          if (!analysis.tissueMask[i]) continue;
-          const norm = clamp((analysis.dabValues[i] - dabMin) / range, 0, 1);
-          data[p] = clamp(data[p] * (1 - 0.45 * norm) + 140 * norm, 0, 255);
-          data[p + 1] = clamp(data[p + 1] * (1 - 0.65 * norm), 0, 255);
-          data[p + 2] = clamp(data[p + 2] * (1 - 0.75 * norm), 0, 255);
-        }
-      }
-      ctx.putImageData(imageData, 0, 0);
-    }
-
-    function buildInterpretation(direction, mappedDiff) {
-      const lines = [];
-      if (mappedDiff === null || direction === null) {
-        lines.push('Average DAB staining percent difference could not be calculated.');
-      } else if (mappedDiff === 0 || direction === 'No difference') {
-        lines.push('No DAB difference detected.');
-      } else if (direction === 'Image 2 darker / stronger') {
-        lines.push('Image 2 shows darker / stronger average DAB staining than Image 1.');
-      } else if (direction === 'Image 2 lighter / weaker') {
-        lines.push('Image 2 shows lighter / weaker average DAB staining than Image 1.');
-      } else {
-        lines.push('Direction of DAB difference could not be determined.');
-      }
-      lines.push('');
-      lines.push('Important note:');
-      lines.push('This tool reports the symmetric percent difference between the two mean DAB OD values, with direction shown separately as lighter / weaker or darker / stronger. Review the QC overlays before trusting the numbers.');
-      return lines.join('\n');
-    }
-
-    function buildReport(a1, a2, direction, mappedDiff) {
-      return [
-        'DAB STAINING COMPARISON REPORT',
-        '='.repeat(60),
-        '',
-        `Image 1 (Reference):  ${state.fileName1 || 'N/A'}`,
-        `Image 2 (Comparison): ${state.fileName2 || 'N/A'}`,
-        '',
-        'METHOD SUMMARY',
-        '-'.repeat(40),
-        '1. Background glass is excluded using a tissue mask from grayscale and saturation.',
-        '2. DAB signal is measured using H-DAB color deconvolution.',
-        '3. The main result is the symmetric percent difference between the two mean DAB OD values, plus direction of change.',
-        '',
-        'IMAGE 1',
-        '-'.repeat(40),
-        `Mean DAB OD in tissue:          ${a1.meanDabTissue.toFixed(6)}`,
-        `Median DAB OD in tissue:        ${a1.medianDabTissue.toFixed(6)}`,
-        `SD DAB OD in tissue:            ${a1.stdDabTissue.toFixed(6)}`,
-        `Tissue pixels:                  ${a1.tissuePixels}`,
-        `Tissue fraction of image:       ${formatPct(a1.tissueFraction)}`,
-        '',
-        'IMAGE 2',
-        '-'.repeat(40),
-        `Mean DAB OD in tissue:          ${a2.meanDabTissue.toFixed(6)}`,
-        `Median DAB OD in tissue:        ${a2.medianDabTissue.toFixed(6)}`,
-        `SD DAB OD in tissue:            ${a2.stdDabTissue.toFixed(6)}`,
-        `Tissue pixels:                  ${a2.tissuePixels}`,
-        `Tissue fraction of image:       ${formatPct(a2.tissueFraction)}`,
-        '',
-        'MAIN RESULT',
-        '-'.repeat(40),
-        mappedDiff === null
-          ? 'Percent difference between Mean DAB OD values: not available'
-          : `Percent difference between Mean DAB OD values: ${(mappedDiff * 100).toFixed(2)}%`,
-        direction === null
-          ? 'Direction of change relative to Image 1: not available'
-          : `Direction of change relative to Image 1: ${direction}`,
-        '',
-        'INTERPRETATION',
-        '-'.repeat(40),
-        buildInterpretation(direction, mappedDiff),
-        '',
-        'FORMULA',
-        '-'.repeat(40),
-        'Percent difference = (|Image 2 Mean DAB OD - Image 1 Mean DAB OD| / average of the two Mean DAB OD values) x 100',
-        'Direction is reported separately as lighter / weaker or darker / stronger.',
-        '',
-        'CAUTION',
-        '-'.repeat(40),
-        'This is a practical browser implementation of the Python logic, but it is not a validated clinical pathology platform.'
-      ].join('\n');
-    }
-
-    function compareImages() {
-      if (!state.img1 || !state.img2) {
-        alert('Please load both images first.');
-        return;
-      }
-
-      try {
-        setStatus('Analyzing images...');
-        const a1 = analyzeImage(state.img1);
-        const a2 = analyzeImage(state.img2);
-        const direction = compareDirection(a1.meanDabTissue, a2.meanDabTissue);
-        const mappedDiff = mappedDabDifference(a1.meanDabTissue, a2.meanDabTissue);
-
-        drawOverlay('qc1t', a1, 'green');
-        drawOverlay('qc1p', a1, 'red');
-        drawOverlay('qc2t', a2, 'green');
-        drawOverlay('qc2p', a2, 'red');
-
-        state.report = buildReport(a1, a2, direction, mappedDiff);
-        reportEl.value = state.report;
-        setStatus(`Analysis complete. Review the QC overlays. Mean DAB difference: ${(mappedDiff * 100).toFixed(2)}%`);
-      } catch (err) {
-        console.error(err);
-        alert(err.message || 'Analysis failed.');
-        setStatus('Analysis failed.');
-      }
-    }
-
-
-    function wrapText(text, maxLen = 70) {
-      return text.split('\n').map(line => {
-        if (line.length <= maxLen) return line;
-
-        let wrapped = '';
-        let remaining = line;
-
-        while (remaining.length > maxLen) {
-          let slice = remaining.slice(0, maxLen);
-          let breakPoint = slice.lastIndexOf(' ');
-          if (breakPoint <= 0) breakPoint = maxLen;
-
-          wrapped += remaining.slice(0, breakPoint).trimEnd() + '\n';
-          remaining = remaining.slice(breakPoint).trimStart();
-        }
-
-        return wrapped + remaining;
-      }).join('\n');
-    }
-
-    function exportReport() {
-      const text = wrapText(reportEl.value.trim(), 70);
-      if (!text) {
-        alert('There is no report to export.');
-        return;
-      }
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'dab_comparison_report.txt';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    async function copyReport() {
-      const text = reportEl.value.trim();
-      if (!text) {
-        alert('There is no report to copy.');
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(text);
-        setStatus('Report copied to clipboard.');
-      } catch {
-        alert('Clipboard copy failed in this browser.');
-      }
-    }
-
-    function openHelp() {
-      const helpWindow = window.open('HELP.txt', '_blank', 'noopener,noreferrer,width=900,height=700,resizable=yes,scrollbars=yes');
-      if (!helpWindow) {
-        alert('Unable to open Help window. Please allow pop-ups for this page.');
-        return;
-      }
-      setStatus('Help opened in a separate window.');
-    }
-
-    function wireDropzone(dropId, fileInputId, which) {
-      const drop = document.getElementById(dropId);
-      const fileInput = document.getElementById(fileInputId);
-
-      drop.addEventListener('click', () => fileInput.click());
-      fileInput.addEventListener('change', (e) => {
-        const file = e.target.files?.[0];
-        if (file) assignFile(which, file);
-      });
-
-      ['dragenter', 'dragover'].forEach(evt => {
-        drop.addEventListener(evt, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          drop.classList.add('dragover');
-        });
-      });
-
-      ['dragleave', 'drop'].forEach(evt => {
-        drop.addEventListener(evt, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          drop.classList.remove('dragover');
-        });
-      });
-
-      drop.addEventListener('drop', (e) => {
-        const file = e.dataTransfer?.files?.[0];
-        if (file && file.type.startsWith('image/')) {
-          assignFile(which, file);
-        } else {
-          alert('Please drop an image file.');
-        }
-      });
-    }
-
-    wireDropzone('drop1', 'file1', 1);
-    wireDropzone('drop2', 'file2', 2);
-
-    document.getElementById('clear1').addEventListener('click', () => clearImage(1));
-    document.getElementById('clear2').addEventListener('click', () => clearImage(2));
-    document.getElementById('compareBtn').addEventListener('click', compareImages);
-    document.getElementById('exportBtn').addEventListener('click', exportReport);
-    document.getElementById('copyBtn').addEventListener('click', copyReport);
-    document.getElementById('clearAllBtn').addEventListener('click', clearAll);
-    document.getElementById('helpBtn').addEventListener('click', openHelp);
-
-    ['qc1t', 'qc1p', 'qc2t', 'qc2p'].forEach(clearCanvas);
-  </script>
+  function max3(a, b, c) { return Math.max(a, Math.max(b, c)); }
+  function min3(a, b, c) { return Math.min(a, Math.min(b, c)); }
+})();
+</script>
 </body>
 </html>
